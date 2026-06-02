@@ -36,16 +36,14 @@ class NtfyNotifier(Notifier):
 
         body = "\n".join(lines) if lines else title
 
-        headers = {
-            "Title": title,
-            "Tags": self.tags,
-            "Click": listing.get("mobile_url") or listing["url"],
-            "Priority": self.priority,
+        # Use JSON so that Unicode in titles and body is handled correctly.
+        # Sending via headers requires Latin-1, which rejects em-dashes and emoji.
+        payload = {
+            "title": title,
+            "message": body,
+            "tags": self.tags.split(","),
+            "priority": self.priority,
+            "click": listing.get("mobile_url") or listing["url"],
         }
-        response = requests.post(
-            self.url,
-            data=body.encode("utf-8"),
-            headers=headers,
-            timeout=self.timeout,
-        )
+        response = requests.post(self.url, json=payload, timeout=self.timeout)
         response.raise_for_status()
