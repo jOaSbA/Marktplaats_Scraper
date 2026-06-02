@@ -14,14 +14,14 @@ class NtfyNotifier(Notifier):
         priority: str = "high",
         timeout: int = REQUEST_TIMEOUT_SECONDS,
     ) -> None:
-        self.server = server.rstrip("/")
-        self.topic = topic
+        self.url = f"{server.rstrip('/')}/{topic}"
         self.tags = tags
         self.priority = priority
         self.timeout = timeout
 
     def send(self, listing: dict) -> None:
-        title = f"{listing['title']} — {listing['price']}"
+        # HTTP headers are Latin-1 only, so keep the title ASCII-safe.
+        title = f"{listing['title']} | {listing['price']}"
 
         lines = []
         location_parts = [p for p in [listing.get("city"), listing.get("drive_time")] if p]
@@ -37,15 +37,16 @@ class NtfyNotifier(Notifier):
 
         body = "\n".join(lines) if lines else title
 
-        # ntfy JSON API: POST to server root with "topic" in the body.
-        # Posting JSON to the topic URL treats the body as plain text.
-        payload = {
-            "topic": self.topic,
-            "title": title,
-            "message": body,
-            "tags": self.tags.split(","),
-            "priority": self.priority,
-            "click": listing["url"],
+        headers = {
+            "Title": title.encode("latin-1", errors="replace").decode("latin-1"),
+            "Tags": self.tags,
+            "Click": listing["url"],
+            "Priority": self.priority,
         }
-        response = requests.post(self.server, json=payload, timeout=self.timeout)
+        response = requests.post(
+            self.url,
+            data=body.encode("utf-8"),
+            headers=headers,
+            timeout=self.timeout,
+        )
         response.raise_for_status()
