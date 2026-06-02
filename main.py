@@ -19,7 +19,6 @@ scraper = MarktplaatsScraper(
 notifier = NtfyNotifier(
     topic=NTFY_TOPIC,
     server=os.environ.get("NTFY_SERVER", "https://ntfy.sh"),
-    title=os.environ.get("NTFY_TITLE", "Nieuwe aanbieding!"),
     tags=os.environ.get("NTFY_TAGS", "bell"),
 )
 

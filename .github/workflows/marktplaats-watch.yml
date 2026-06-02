@@ -33,7 +33,6 @@ jobs:
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           SEARCH_QUERY: "ninja creami"
-          NTFY_TITLE: "Nieuwe Ninja Creami gevonden!"
           NTFY_TAGS: "ice_cream,shopping_cart"
           # NTFY_SERVER: ${{ secrets.NTFY_SERVER }}  # uncomment for self-hosted ntfy
         run: python main.py
