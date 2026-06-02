@@ -4,7 +4,6 @@ from ..base import Scraper
 
 SEARCH_API_URL = "https://www.marktplaats.nl/lrp/api/search"
 LISTING_BASE_URL = "https://www.marktplaats.nl"
-MOBILE_BASE_URL = "https://m.marktplaats.nl"
 OSRM_TABLE_URL = "http://router.project-osrm.org/table/v1/driving/{coords}?sources=0&annotations=duration"
 RESULTS_PER_REQUEST = 30
 REQUEST_TIMEOUT_SECONDS = 20
@@ -94,7 +93,6 @@ class MarktplaatsScraper(Scraper):
     def _parse(self, raw: dict, drive_time: str = "") -> dict:
         relative_url = raw.get("vipUrl") or raw.get("url") or ""
         url = relative_url if relative_url.startswith("http") else LISTING_BASE_URL + relative_url
-        mobile_url = relative_url if relative_url.startswith("http") else MOBILE_BASE_URL + relative_url
 
         loc = raw.get("location") or {}
         attrs = {a["key"]: a.get("value", "") for a in (raw.get("attributes") or [])}
@@ -104,7 +102,6 @@ class MarktplaatsScraper(Scraper):
             "title": (raw.get("title") or "Geen titel").strip(),
             "price": _format_price(raw.get("priceInfo") or {}),
             "url": url,
-            "mobile_url": mobile_url,
             "city": loc.get("cityName") or "",
             "drive_time": drive_time,
             "condition": attrs.get("condition", ""),

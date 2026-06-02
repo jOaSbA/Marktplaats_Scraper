@@ -14,7 +14,8 @@ class NtfyNotifier(Notifier):
         priority: str = "high",
         timeout: int = REQUEST_TIMEOUT_SECONDS,
     ) -> None:
-        self.url = f"{server.rstrip('/')}/{topic}"
+        self.server = server.rstrip("/")
+        self.topic = topic
         self.tags = tags
         self.priority = priority
         self.timeout = timeout
@@ -36,14 +37,15 @@ class NtfyNotifier(Notifier):
 
         body = "\n".join(lines) if lines else title
 
-        # Use JSON so that Unicode in titles and body is handled correctly.
-        # Sending via headers requires Latin-1, which rejects em-dashes and emoji.
+        # ntfy JSON API: POST to server root with "topic" in the body.
+        # Posting JSON to the topic URL treats the body as plain text.
         payload = {
+            "topic": self.topic,
             "title": title,
             "message": body,
             "tags": self.tags.split(","),
             "priority": self.priority,
-            "click": listing.get("mobile_url") or listing["url"],
+            "click": listing["url"],
         }
-        response = requests.post(self.url, json=payload, timeout=self.timeout)
+        response = requests.post(self.server, json=payload, timeout=self.timeout)
         response.raise_for_status()
