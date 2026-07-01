@@ -32,8 +32,8 @@ jobs:
       - name: Check for new listings
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-          SEARCH_QUERY: "ninja creami"
-          NTFY_TAGS: "ice_cream,shopping_cart"
+          SEARCH_QUERY: ${{ vars.SEARCH_QUERY }}
+          NTFY_TAGS: ${{ vars.NTFY_TAGS }}
           # NTFY_SERVER: ${{ secrets.NTFY_SERVER }}  # uncomment for self-hosted ntfy
         run: python main.py
 

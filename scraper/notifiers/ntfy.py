@@ -1,8 +1,17 @@
+import base64
+
 import requests
 
 from ..base import Notifier
 
 REQUEST_TIMEOUT_SECONDS = 20
+
+
+def _encode_header(value: str) -> str:
+    """RFC 2047 encoded-word, since HTTP headers are Latin-1 only but ntfy
+    decodes this form as UTF-8 (needed for things like the euro sign)."""
+    encoded = base64.b64encode(value.encode("utf-8")).decode("ascii")
+    return f"=?UTF-8?B?{encoded}?="
 
 
 class NtfyNotifier(Notifier):
@@ -20,7 +29,6 @@ class NtfyNotifier(Notifier):
         self.timeout = timeout
 
     def send(self, listing: dict) -> None:
-        # HTTP headers are Latin-1 only, so keep the title ASCII-safe.
         title = f"{listing['title']} | {listing['price']}"
 
         lines = []
@@ -38,7 +46,7 @@ class NtfyNotifier(Notifier):
         body = "\n".join(lines) if lines else title
 
         headers = {
-            "Title": title.encode("latin-1", errors="replace").decode("latin-1"),
+            "Title": _encode_header(title),
             "Tags": self.tags,
             "Click": listing["url"],
             "Priority": self.priority,
@@ -46,6 +54,20 @@ class NtfyNotifier(Notifier):
         response = requests.post(
             self.url,
             data=body.encode("utf-8"),
+            headers=headers,
+            timeout=self.timeout,
+        )
+        response.raise_for_status()
+
+    def send_error(self, message: str) -> None:
+        headers = {
+            "Title": "Marktplaats watch error",
+            "Tags": "warning",
+            "Priority": "default",
+        }
+        response = requests.post(
+            self.url,
+            data=message.encode("utf-8", errors="replace"),
             headers=headers,
             timeout=self.timeout,
         )
