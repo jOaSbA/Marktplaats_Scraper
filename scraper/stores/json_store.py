@@ -14,16 +14,26 @@ class JsonSeenStore(SeenStore):
     def exists(self) -> bool:
         return self.path.exists()
 
-    def load(self) -> set[str]:
+    def _load_state(self) -> dict:
         if not self.path.exists():
-            return set()
+            return {}
         try:
-            return set(json.loads(self.path.read_text(encoding="utf-8")))
+            data = json.loads(self.path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, ValueError):
-            return set()
+            return {}
+        if isinstance(data, list):
+            # Old format: a plain list of IDs with no query attached.
+            return {"query": None, "ids": data}
+        return data
 
-    def save(self, ids: list[str]) -> None:
+    def load(self) -> set[str]:
+        return set(self._load_state().get("ids", []))
+
+    def load_query(self) -> str | None:
+        return self._load_state().get("query")
+
+    def save(self, ids: list[str], query: str) -> None:
         self.path.write_text(
-            json.dumps(ids[: self.max_ids], indent=2),
+            json.dumps({"query": query, "ids": ids[: self.max_ids]}, indent=2),
             encoding="utf-8",
         )

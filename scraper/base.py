@@ -23,5 +23,9 @@ class SeenStore(ABC):
         """Return the set of listing IDs already notified about."""
 
     @abstractmethod
-    def save(self, ids: list[str]) -> None:
-        """Persist the ordered list of listing IDs."""
+    def load_query(self) -> str | None:
+        """Return the search query the stored IDs were seen under, or None if unknown."""
+
+    @abstractmethod
+    def save(self, ids: list[str], query: str) -> None:
+        """Persist the ordered list of listing IDs alongside the query they belong to."""

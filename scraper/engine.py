@@ -2,13 +2,16 @@ from .base import Notifier, Scraper, SeenStore
 
 
 class Engine:
-    def __init__(self, scraper: Scraper, notifier: Notifier, store: SeenStore) -> None:
+    def __init__(self, scraper: Scraper, notifier: Notifier, store: SeenStore, query: str) -> None:
         self.scraper = scraper
         self.notifier = notifier
         self.store = store
+        self.query = query
 
     def run(self) -> None:
-        is_first_run = not self.store.exists()
+        is_first_run = not self.store.exists() or self.store.load_query() != self.query
+        if is_first_run and self.store.exists():
+            print("Search query changed since the last run: reseeding without notifying.")
 
         listings = self.scraper.fetch()
         if not listings:
@@ -19,7 +22,7 @@ class Engine:
 
         if is_first_run:
             print(f"First run: remembering {len(current_ids)} listings without notifying.")
-            self.store.save(current_ids)
+            self.store.save(current_ids, self.query)
             return
 
         seen_ids = self.store.load()
@@ -33,4 +36,4 @@ class Engine:
             print("No new listings this run.")
 
         leftover_ids = [id_ for id_ in seen_ids if id_ not in current_ids]
-        self.store.save(current_ids + leftover_ids)
+        self.store.save(current_ids + leftover_ids, self.query)

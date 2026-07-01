@@ -14,7 +14,10 @@ runners — nothing to plug in, no PC left running.
    remembers what it already saw.
 
 The very first run only *seeds* `seen.json` and sends no notifications, so you
-don't get spammed with every existing listing at once.
+don't get spammed with every existing listing at once. Changing `SEARCH_QUERY`
+triggers the same silent reseed on the next run — `seen.json` remembers which
+query it was seeded for, so switching products never floods you with
+notifications for everything currently listed under the new search term.
 
 If a run fails for a real reason (e.g. Marktplaats blocks the request, or ntfy
 is unreachable), the workflow itself still succeeds — you get a push

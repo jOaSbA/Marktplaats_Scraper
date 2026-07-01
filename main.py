@@ -29,7 +29,7 @@ store = JsonSeenStore(
 )
 
 try:
-    Engine(scraper, notifier, store).run()
+    Engine(scraper, notifier, store, query=SEARCH_QUERY).run()
 except Exception as exc:
     print(f"Run failed: {exc}")
     try:
